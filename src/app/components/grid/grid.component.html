@@ -1,0 +1,5 @@
+<ng-container *ngFor="let i of range(gridWidth())">
+    <ng-container *ngFor="let j of range(gridHeight())">
+        <app-square style.top="{{j / gridHeight() * 100}}%" style.left="{{i / gridWidth() * 100}}%" [x]="i" [y]="j"></app-square>
+    </ng-container>
+</ng-container>
