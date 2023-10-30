@@ -15,6 +15,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.currentGameService.newGame(new Grid(10, 10, 0, 0, 9, 9));
+    this.currentGameService.newGame(new Grid(15, 15, 0, 7, -1, 7, 14, 7));
   }
 }

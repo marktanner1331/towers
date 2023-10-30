@@ -1,0 +1,9 @@
+:host {
+    height: 100%;
+    display: block;
+}
+
+::ng-deep router-outlet+* {
+    height: 100%;
+    display: block;
+}

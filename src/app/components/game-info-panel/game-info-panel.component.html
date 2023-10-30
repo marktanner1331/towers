@@ -1,0 +1,7 @@
+<h3>Towers</h3>
+<div id="towerButtonContainer">
+    <div class="towerButton" [class.selected]="currentSquareType == SquareType.WALL" (click)="onWallClick()">Wall</div>
+    <div class="towerButton" [class.selected]="currentSquareType == SquareType.TOWER && currentTowerType == TowerType.CANNON" (click)="onTowerClick()">Cannon</div>
+</div>
+<h3>Controls</h3>
+<div id="send" (click)="onSendClick()">Send Enemy</div>

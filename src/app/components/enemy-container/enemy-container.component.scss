@@ -1,0 +1,13 @@
+app-enemy-container {
+    pointer-events: none;
+    &>* {
+        width: var(--singleSquareWidth);
+        height: var(--singleSquareHeight);
+        position: absolute;
+    }
+    & .normal {
+        transform: scale(0.8);
+        background-color: red;
+        border-radius: 50%;
+    }
+}

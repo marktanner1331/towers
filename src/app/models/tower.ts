@@ -12,13 +12,15 @@ export abstract class Tower {
 }
 
 export class Cannon extends Tower {
+    range: number = Math.floor(Math.random() * 5) + 1;
+    speed: number = 1;
+    power: number = Math.floor(Math.random() * 5) + 1;
+
     constructor(x:number, y:number) {
         super(TowerType.CANNON, x, y);
     }
 }
 
 export enum TowerType {
-    CANNON,
-    RAPID,
-    SNIPER
+    CANNON
 }

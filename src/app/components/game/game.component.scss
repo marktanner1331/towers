@@ -1,0 +1,16 @@
+:host {
+    display: flex;
+    flex-direction: row;
+    background-color: black;
+    justify-content: center;
+}
+
+#gridContainer {
+    height: 100%;
+    position: relative;
+}
+
+app-grid,
+app-enemy-container {
+    position: absolute;
+}

@@ -1,3 +1,5 @@
+import { EventEmitter } from "@angular/core";
+import { Enemy } from "./enemy";
 import { SquareType } from "./square-type";
 import { Tower, TowerType } from "./tower";
 
@@ -6,31 +8,69 @@ getGridsInRange()
 */
 
 export class Square {
-    type!: SquareType;
+    squareTypeChanged: EventEmitter<void> = new EventEmitter();
+
+    type: SquareType;
     tower: Tower | null = null;
 
     /// the square that is next in the path
-    path!: Square;
-    
+    nextSquare!: Square;
+
     /// the angle of the path to the next square
     /// expressed as (clockwise angle in degrees from up / 45)
-    bearing!:number;
+    bearing!: number;
 
     distanceToEnd!: number;
 
+    enemies: Enemy[] = [];
+
     constructor(public x: number, public y: number, public offset: number) {
+        this.type = SquareType.EMPTY;
+    }
+
+    addEnemy(enemy: Enemy) {
+        this.enemies.push(enemy);
+    }
+
+    removeEnemy(enemy: Enemy) {
+        this.enemies = this.enemies.filter(x => x.id != enemy.id);
     }
 
     isEmpty(): boolean {
         return this.type == SquareType.EMPTY || this.type == SquareType.RESERVED;
     }
+
+    toString() {
+        return JSON.stringify({
+            x: this.x,
+            y: this.y
+        });
+    }
 }
 
 export class Grid {
-    squares: Square[];
+    origin!: Square;
 
-    constructor(public width: number, public height: number, public startX: number, public startY: number, public endX: number, public endY: number) {
+    squares: Square[];
+    gridChanged: EventEmitter<void> = new EventEmitter();
+
+    constructor(
+        public width: number,
+        public height: number,
+        public startX: number,
+        public startY: number,
+        public originX: number,
+        public originY: number,
+        public endX: number,
+        public endY: number) {
         this.squares = new Array(width * height);
+
+        if (this.isEmpty()) {
+            return;
+        }
+
+        this.origin = new Square(originX, originY, 0);
+        this.origin.type = SquareType.RESERVED;
 
         let offset = 0;
         for (let x = 0; x < width; x++) {
@@ -40,11 +80,27 @@ export class Grid {
             }
         }
 
+        this.createOuterWall();
         this.regeneratePaths();
     }
 
+    createOuterWall() {
+        for (let i = 0; i < this.width; i++) {
+            this.squareAt(i, 0).type = SquareType.WALL;
+            this.squareAt(i, this.height - 1).type = SquareType.WALL;
+        }
+
+        for (let j = 0; j < this.height; j++) {
+            this.squareAt(0, j).type = SquareType.WALL;
+            this.squareAt(this.width - 1, j).type = SquareType.WALL;
+        }
+
+        this.squareAt(this.endX, this.endY).type = SquareType.EMPTY;
+        this.squareAt(this.startX, this.startY).type = SquareType.EMPTY;
+    }
+
     static empty(): Grid {
-        return new Grid(0, 0, 0, 0, 0, 0);
+        return new Grid(0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     /// returns a list of unreachable squares if a tower is placed at the given coordinates
@@ -107,6 +163,47 @@ export class Grid {
     //     return unreachable;
     // }
 
+    emptySquaresInRange(square: Square, range: number): Square[] {
+        let squares: Square[] = [];
+
+        //iterate through all pixels in the bounding box
+        let minX = Math.max(0, square.x - range);
+        let maxX = Math.min(this.width - 1, square.x + range);
+        let minY = Math.max(0, square.y - range);
+        let maxY = Math.min(this.height - 1, square.y + range);
+
+        let squareRange = range * range;
+        
+        for(let i = minX;i < maxX;i++) {
+            for(let j = minY;j < maxY;j++) {
+                let target = this.squareAt(i, j);
+
+                if(!target.isEmpty()) {
+                    continue;
+                }
+
+                let distanceSquared = (square.x - i) * (square.x - i) + (square.y - j) * (square.y - j);
+                if(distanceSquared < squareRange) {
+                    squares.push(target);
+                }
+            }
+        }
+
+        return squares;
+    }
+
+    isEmpty(): boolean {
+        return this.width == 0 && this.height == 0;
+    }
+
+    getStart(): Square {
+        return this.squareAt(this.startX, this.startY);
+    }
+
+    getEnd(): Square {
+        return this.squareAt(this.endX, this.endY);
+    }
+
     regeneratePaths() {
         let explored: { [key: number]: boolean } = {};
         let queue: Square[] = [];
@@ -132,26 +229,29 @@ export class Grid {
             if (!explored[dest.offset]) {
                 explored[dest.offset] = true;
 
-                dest.path = source;
+                dest.nextSquare = source;
                 if (isDiagonal) {
                     dest.distanceToEnd = source.distanceToEnd + 1.4;
                 } else {
                     dest.distanceToEnd = source.distanceToEnd + 1;
                 }
 
-                switch(dest.x - source.x) {
+                switch (source.x - dest.x) {
                     case -1:
-                        switch(dest.y - source.y) {
+                        switch (source.y - dest.y) {
                             case -1:
+                                dest.bearing = 5;
                                 break;
                             case 0:
+                                dest.bearing = 6;
                                 break;
                             case 1:
+                                dest.bearing = 7;
                                 break;
                         }
                         break;
                     case 0:
-                        switch(dest.y - source.y) {
+                        switch (source.y - dest.y) {
                             case -1:
                                 dest.bearing = 0;
                                 break;
@@ -161,7 +261,7 @@ export class Grid {
                         }
                         break;
                     case 1:
-                        switch(dest.y - source.y) {
+                        switch (source.y - dest.y) {
                             case -1:
                                 dest.bearing = 1;
                                 break;
@@ -169,6 +269,7 @@ export class Grid {
                                 dest.bearing = 2;
                                 break;
                             case 1:
+                                dest.bearing = 3;
                                 break;
                         }
                         break;
@@ -196,21 +297,21 @@ export class Grid {
             if (square.y > 0) {
                 up = this.squares[square.offset - 1];
                 if (!up.isEmpty()) {
-                    left = undefined;
+                    up = undefined;
                 }
             }
 
             if (square.x < this.width - 1) {
                 right = this.squares[square.offset + this.height];
                 if (!right.isEmpty()) {
-                    left = undefined;
+                    right = undefined;
                 }
             }
 
             if (square.y < this.height - 1) {
                 down = this.squares[square.offset + 1];
                 if (!down.isEmpty()) {
-                    left = undefined;
+                    down = undefined;
                 }
             }
 
@@ -258,6 +359,11 @@ export class Grid {
                 }
             }
         }
+
+        let start: Square = this.squareAt(this.startX, this.startY);
+        this.origin.nextSquare = start;
+        this.origin.distanceToEnd = start.distanceToEnd + 1;
+        this.origin.bearing = start.bearing;
     }
 
     addTower(x: number, y: number, type: TowerType) {
@@ -265,6 +371,16 @@ export class Grid {
         square.type = SquareType.TOWER;
         square.tower = Tower.fromType(type, x, y);
         this.regeneratePaths();
+        this.gridChanged.next();
+        square.squareTypeChanged.next();
+    }
+
+    addWall(x: number, y: number) {
+        let square = this.squareAt(x, y);
+        square.type = SquareType.WALL;
+        this.regeneratePaths();
+        this.gridChanged.next();
+        square.squareTypeChanged.next();
     }
 
     toOffset(x: number, y: number): number {

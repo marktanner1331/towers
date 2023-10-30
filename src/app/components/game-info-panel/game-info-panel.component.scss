@@ -1,0 +1,32 @@
+:host {
+    background-color: black;
+    padding: 10px;
+    color: #ddd;
+}
+
+h3 {
+    margin: 2px 0;
+}
+
+#towerButtonContainer {
+    display: flex;
+    &>.towerButton {
+        padding: 5px;
+        border: 1px solid black;
+        cursor: pointer;
+        background-color: #777;
+        margin: auto;
+    }
+}
+
+#send {
+    padding: 5px;
+    border: 1px solid black;
+    cursor: pointer;
+    background-color: #777;
+    text-align: center;
+}
+
+.selected {
+    background-color: #55a !important;
+}

@@ -9,6 +9,9 @@ import { BulletContainerComponent } from './components/bullet-container/bullet-c
 import { GameComponent } from './components/game/game.component';
 import { EmptySquareComponent } from './components/empty-square/empty-square.component';
 import { SquareComponent } from './components/square/square.component';
+import { WallComponent } from './components/wall/wall.component';
+import { GameInfoPanelComponent } from './components/game-info-panel/game-info-panel.component';
+import { CannonComponent } from './components/cannon/cannon.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +21,10 @@ import { SquareComponent } from './components/square/square.component';
     BulletContainerComponent,
     GameComponent,
     EmptySquareComponent,
-    SquareComponent
+    SquareComponent,
+    WallComponent,
+    GameInfoPanelComponent,
+    CannonComponent
   ],
   imports: [
     BrowserModule,

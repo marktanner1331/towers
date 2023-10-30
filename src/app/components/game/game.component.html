@@ -1,1 +1,6 @@
-<app-grid></app-grid>
+<div #gridContainer id="gridContainer">
+    <app-grid style.top="{{_top}}px" style.left="{{_left}}px" style.width="{{_width}}px" style.height="{{_height}}px"></app-grid>
+    <app-enemy-container style.top="{{_top}}px" style.left="{{_left}}px" style.width="{{_width}}px" style.height="{{_height}}px"></app-enemy-container>
+    <app-bullet-container style.top="{{_top}}px" style.left="{{_left}}px" style.width="{{_width}}px" style.height="{{_height}}px"></app-bullet-container>
+</div>
+<template #panelContainer></template>
